@@ -1,9 +1,9 @@
 import express from 'express'
 import auth from './middleware/auth';
-import {UserSignInSchema, UserSignUpSchema} from '@repo/common/src/types'
+import {UserSignInSchema, UserSignUpSchema} from '@repo/common/types'
 
 
-import {prisma} from '@repo/db/src/index'
+import {prisma} from '@repo/db/prisma'
 const PORT=3000
 
 const app = express();

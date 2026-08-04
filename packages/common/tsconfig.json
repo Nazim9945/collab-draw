@@ -1,7 +1,3 @@
 {
-  "exclude": ["@repo/typescript-config/base.json"],
-  "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist"
-  }
+  "exclude": ["@repo/typescript-config/base.json"]
 }
