@@ -1,12 +1,25 @@
-import {  PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPostgresAdapter } from "@prisma/adapter-ppg";
 
-// Instantiate your runtime variable (lowercase)
-const prisma = new PrismaClient({
+import 'dotenv/config'
+
+import { PrismaClient } from "../src/generated/prisma/client";
+
+const prismaClientSingleton = () => {
+  return new PrismaClient({
   adapter: new PrismaPostgresAdapter({
     connectionString: process.env.DATABASE_URL!,
   }),
-});
+})
+}
+type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;
 
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClientSingleton | undefined;
+};
 
-export { prisma}
+const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
+
+export { prisma};
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
