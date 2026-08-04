@@ -1,6 +1,9 @@
 import express from 'express'
 import auth from './middleware/auth';
-import {UserSignInSchema} from '@repo/common/src/types'
+import {UserSignInSchema, UserSignUpSchema} from '@repo/common/src/types'
+
+
+import {prisma} from '@repo/db/src/index'
 const PORT=3000
 
 const app = express();
@@ -10,18 +13,34 @@ app.use(express.json())
 
 
 
-app.get('/signup',(req,res)=>{
+app.get('/signup',async(req,res)=>{
+     const { username, password,email } = req.body;
+
+     if (!UserSignUpSchema.safeParse({ username, password,email })) {
+       return res.json({
+         message: "Invalid credentials",
+       });
+     }
+     await prisma.user.create({
+       data: {
+         username,
+         password,
+         email
+       },
+     });
     return res.json({
         user:"Hello Now i am registered!!"
     })
 })
 app.get('/signin',(req,res)=>{
-    const {username,password}=req.body
-    if(!UserSignInSchema.safeParse({username,password})){
-        return res.json({
-            message:"Invalid credentials"
-        })
-    }
+   
+     const { username, password } = req.body;
+
+     if (!UserSignInSchema.safeParse({ username, password})) {
+       return res.json({
+         message: "Invalid credentials",
+       });
+     }
     const userid=123;
     // db-call
     return res.json({

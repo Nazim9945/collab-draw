@@ -17,6 +17,7 @@
   "devDependencies": {
      "@repo/typescript-config":"workspace:*",
     "@repo/common":"workspace:*",
+    "@repo/db":"workspace:*",
     "@types/express": "^5.0.6"
   }
 }
