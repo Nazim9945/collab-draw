@@ -1,11 +1,13 @@
+import { prisma } from "@repo/db/prisma";
 
+export default async function Page() {
+  const users = await prisma.user.findMany();
+  
 
-
-
-export default function Home() {
   return (
-   <div className="">
-    Hello world
-   </div>
+    <div>
+      <h1>Hello World</h1>
+      <pre>{JSON.stringify(users, null, 2)}</pre>
+    </div>
   );
 }

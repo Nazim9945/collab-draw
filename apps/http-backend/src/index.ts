@@ -1,9 +1,10 @@
 import express from 'express'
-import auth from './middleware/auth';
+import auth from './middleware/auth.js';
 import {UserSignInSchema, UserSignUpSchema} from "@repo/common/types"
 
 
-// import {prisma} from "@repo/db/prisma"
+import {prisma} from "@repo/db/prisma"
+
 const PORT=3001
 
 const app = express();
@@ -13,26 +14,26 @@ app.use(express.json())
 
 
 
-app.get('/signup',async(req,res)=>{
+app.post('/signup',async(req,res)=>{
      const { username, password,email } = req.body;
-
+    const data=await prisma.user.create({
+      data:{
+        email,
+        username,
+        password
+      }
+    })
      if (!UserSignUpSchema.safeParse({ username, password,email })) {
        return res.json({
          message: "Invalid credentials",
        });
      }
-    //  await prisma.user.create({
-    //    data: {
-    //      username,
-    //      password,
-    //      email
-    //    },
-    //  });
+     
     return res.json({
-        user:"Hello Now i am registered!!"
+        user:data
     })
 })
-app.get('/signin',(req,res)=>{
+app.post('/signin',(req,res)=>{
    
      const { username, password } = req.body;
 
@@ -48,7 +49,7 @@ app.get('/signin',(req,res)=>{
     })
 })
 
-app.get('/create-room',auth,(req,res)=>{
+app.post('/create-room',auth,(req,res)=>{
     // db-call
     return res.json({
         message:"room created successfully!!"
