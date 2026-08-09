@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "@repo/db": "workspace:*",
+    "tsx": "^4.23.9",
     "ws": "^8.21.1"
   },
   "devDependencies": {

@@ -106,6 +106,9 @@ importers:
       '@repo/db':
         specifier: workspace:*
         version: link:../../packages/db
+      tsx:
+        specifier: ^4.23.9
+        version: 4.23.9
       ws:
         specifier: ^8.21.1
         version: 8.21.1

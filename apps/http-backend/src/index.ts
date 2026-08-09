@@ -1,6 +1,6 @@
 import express from 'express'
 import auth from './middleware/auth.js';
-import {UserSignInSchema, UserSignUpSchema,SECRET_KEY} from "@repo/common"
+import {UserSignInSchema, UserSignUpSchema,SECRET_KEY, RoomSchema} from "@repo/common"
 import { Request } from 'express';
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
@@ -24,7 +24,7 @@ app.post('/signup',async(req,res)=>{
      if(!username || !password || !email){
        return res.status(401).json({
          success: false,
-         message: "Invalid credentials",
+         message: "All Fields are Required!!",
        });
      }
       if (!UserSignUpSchema.safeParse({ username, password, email }).success) {
@@ -34,7 +34,11 @@ app.post('/signup',async(req,res)=>{
         });
       }
 
-      const isExist=await prisma.user.findFirst({where:email});
+      const isExist=await prisma.user.findFirst({
+        where:{
+          email
+        }
+      });
       if(isExist){
          return res.status(200).json({
            success: false,
@@ -103,25 +107,29 @@ if ( !password || !email) {
          message: "Invalid credentials",
        });
      }
+    
     const user = await prisma.user.findFirst({
-      where:{
-        email
+      where: {
+        email: email,
       }
-    })
+    });
+    
     // db-call
-    if(!user){
+    if(!user ||  ! await bcrypt.compare(password,user.password)){
        return res.status(401).json({
          success: false,
          message:"Invalid credentials"
        });
     }
+    // @ts-ignore
+    delete user.password
     const payload = {
       userId: user.id,
     };
     const token = jwt.sign(payload, SECRET_KEY, {
       expiresIn: "7d",
     });
-
+    
     return res
       .cookie("token", token, {
         httpOnly: true,
@@ -135,27 +143,40 @@ if ( !password || !email) {
       });
 })
 
-app.post('/create-room',auth,(req:RequestHandler,res)=>{
+app.post('/create-room',auth,async(req:RequestHandler,res)=>{
     
     const userId=req.userId
     const { roomName}=req.body
     // zod test
-    // await prisma.room.create({data:{userId,slug:roomName}})
+    if(!userId || !roomName || !RoomSchema.safeParse({roomName}).success){
+      return res.status(401).json({
+        success:false,
+        message:"Invalid Input"
+      })
+    }
+    await prisma.room.create({data:{
+      userId:Number(userId),
+      slug:roomName
+    }})
     
-    return res.json({
+    return res.status(200).json({
         message:"room created successfully!!"
     })
 })
 
-app.get('/allRooms',auth,(req,res)=>{
+app.get('/allrooms',auth,async(req,res)=>{
       // show room that user has joined
       // show all the rooms
-      // return await prisma.room.findMany({});
+      const rooms= await prisma.room.findMany({});
+      return res.status(201).json({
+        success:true,
+        data:rooms
+      })
       //( optional ) add pagination for rooms
       
 })
 app.get('/',(req,res)=>{
-    res.send("hello world")
+   return res.send("hello world")
 
 })
 
