@@ -1,13 +1,12 @@
 import { prisma } from "@repo/db/prisma";
 
 export default async function Page() {
-  const users = await prisma.user.findMany();
   
 
   return (
-    <div>
-      <h1>Hello World</h1>
-      <pre>{JSON.stringify(users, null, 2)}</pre>
+    <div className="h-screen bg-red-400">
+      <h1 className="text-foreground bg-background">Hello World</h1>
+      
     </div>
   );
 }
