@@ -5,12 +5,13 @@ import { RequestHandler } from "../index";
 
 
 const auth=async(req:RequestHandler,res:Response,next:NextFunction)=>{
-
+ 
         try {
             const token=req.cookies.token
-            if(!token) return res.json({
+            
+            if(!token) return res.status(403).json({
               success: false,
-              message: "failed",
+              message: "failed token is missing",
             });
             
             // verify via jwt

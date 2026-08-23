@@ -1,4 +1,5 @@
 import express from 'express'
+import morgan from 'morgan'
 import auth from './middleware/auth.js';
 import {UserSignInSchema, UserSignUpSchema,SECRET_KEY, RoomSchema} from "@repo/common"
 import { Request } from 'express';
@@ -6,6 +7,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import cookieParser from 'cookie-parser'
 import {prisma} from "@repo/db/prisma"
+import cors from 'cors'
 export interface RequestHandler extends Request {
   userId?: string;
 }
@@ -13,7 +15,13 @@ const PORT=3001
 
 const app = express();
 
-
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  }),
+);
+app.use(morgan('dev'))
 app.use(express.json())
 app.use(cookieParser())
 
@@ -76,14 +84,18 @@ app.post('/signup',async(req,res)=>{
         expiresIn:'7d'
       })
       
-      return res.cookie('token',token,{
-        httpOnly:true,
-        maxAge:24*60*60*60*1000
-      }).status(200).json({
-        success: true,
-        data:user,
-        token
-      });
+      return res
+        .cookie("token", token, {
+          httpOnly: true,
+          maxAge: 24 * 60 * 60 * 60 * 1000,
+          secure: true
+        })
+        .status(200)
+        .json({
+          success: true,
+          data: user,
+          token,
+        });
     } catch (error) {
       console.log(error);
       return res.status(500).json({
@@ -134,6 +146,8 @@ if ( !password || !email) {
       .cookie("token", token, {
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 60 * 1000,
+        secure:true
+        
       })
       .status(200)
       .json({
@@ -167,6 +181,7 @@ app.post('/create-room',auth,async(req:RequestHandler,res)=>{
 app.get('/allrooms',auth,async(req,res)=>{
       // show room that user has joined
       // show all the rooms
+     
       const rooms= await prisma.room.findMany({});
       return res.status(201).json({
         success:true,
