@@ -190,6 +190,51 @@ app.get('/allrooms',auth,async(req,res)=>{
       //( optional ) add pagination for rooms
       
 })
+app.get('/room/:slug',auth,async(req,res)=>{
+  console.log(req.params.slug);
+  const slug=req.params.slug as string
+  try {
+    const roomId=await prisma.room.findFirst({
+      where:{
+        slug
+      }
+    })
+    if(!roomId) {
+      return res.status(404).json({
+        success:false,
+        message:"No roomId is avaialable"
+      })
+    }
+    return res.status(200).json({
+      success:true,
+      data:roomId.id
+  })
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({
+      success:false,
+      message:"failed at system"
+    })
+  }
+})
+
+app.get('/room/:roomId',auth,async(req,res)=>{
+  const roomId=Number(req.params.roomId) as number
+  try {
+    const chats=await prisma.chat.findMany({
+      where:{
+        roomId
+      },
+      take:50
+    })
+    return res.status(200).json({
+      success:true,
+      data:chats
+    })
+  } catch (error) {
+    console.log(error)
+  }
+})
 app.get('/',(req,res)=>{
    return res.send("hello world")
 

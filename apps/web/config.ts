@@ -2,6 +2,7 @@ import axios from "axios"
 
 
 const BACKEND_URL="http://localhost:3001"
+const WS_URL = "wss://localhost:3002";
 
 
 const apiInstance=axios.create({
@@ -9,4 +10,4 @@ const apiInstance=axios.create({
     withCredentials:true
 })
 
-export {apiInstance}
+export {apiInstance,WS_URL}
