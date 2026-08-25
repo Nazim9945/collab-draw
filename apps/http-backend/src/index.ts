@@ -93,8 +93,7 @@ app.post('/signup',async(req,res)=>{
         .status(200)
         .json({
           success: true,
-          data: user,
-          token,
+         message:"successfully created account!!"
         });
     } catch (error) {
       console.log(error);
@@ -152,8 +151,7 @@ if ( !password || !email) {
       .status(200)
       .json({
         success: true,
-        data: user,
-        token,
+        message:"Successfully Logged In!!"
       });
 })
 
@@ -174,24 +172,28 @@ app.post('/create-room',auth,async(req:RequestHandler,res)=>{
     }})
     
     return res.status(200).json({
+        success:true,
         message:"room created successfully!!"
     })
 })
 
 app.get('/allrooms',auth,async(req,res)=>{
-      // show room that user has joined
+      // show room specific to user has joined
+      // or
       // show all the rooms
+      // pending??
      
       const rooms= await prisma.room.findMany({});
       return res.status(201).json({
         success:true,
+        message:"fecthed all the rooms!!",
         data:rooms
       })
       //( optional ) add pagination for rooms
       
 })
 app.get('/getroomId',auth,async(req,res)=>{
- 
+//  url  needs to change
   const slug=req.query.slug as string
   try {
     const roomId=await prisma.room.findFirst({
@@ -207,6 +209,7 @@ app.get('/getroomId',auth,async(req,res)=>{
     }
     return res.status(200).json({
       success:true,
+      message:"fetched id",
       data:roomId.id
   })
   } catch (error) {
@@ -229,11 +232,37 @@ app.get('/room/:roomId',auth,async(req,res)=>{
     })
     return res.status(200).json({
       success:true,
+      message:"fetched all the chats successfully!!",
       data:chats
     })
   } catch (error) {
     console.log(error)
   }
+})
+
+app.get('/me',auth,async(req:RequestHandler,res)=>{
+  const id=req.userId as string
+  const data = await prisma.user.findFirst({
+    where: {
+      id: Number(id),
+    },
+    select:{
+      username:true
+    }
+  });
+  if(!data){
+    return res.status(403).json({
+      success: false,
+      message: "failed to fetch user details",
+      
+    });
+  }
+return res.status(200).json({
+  success:true,
+  message:"fecthed me point",
+  username:data?.username
+})
+
 })
 app.get('/',(req,res)=>{
    return res.send("hello world")

@@ -113,15 +113,12 @@ export default function Dashboard() {
           }}
         >
           <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="create-room-title"
             className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
           >
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <h2
-                  id="create-room-title"
+                
                   className="text-lg font-semibold text-gray-900"
                 >
                   Create a room
@@ -132,7 +129,6 @@ export default function Dashboard() {
               </div>
               <button
                 type="button"
-                aria-label="Close create room dialog"
                 onClick={() => setIsCreateRoomOpen(false)}
                 disabled={isCreatingRoom}
                 className="text-2xl leading-none text-gray-400 hover:text-gray-700 disabled:cursor-not-allowed"

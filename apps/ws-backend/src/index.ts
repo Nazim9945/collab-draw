@@ -24,14 +24,20 @@ wss.on("connection",async(ws:WebSocket,req:any)=>{
   const userDetails=await prisma.user.findFirst({
     where:{
       id:decode.userId
+    },
+    select:{
+      username:true
     }
   })
   if(!userDetails){
     return ws.close()
   }
-  console.log("1")
-   ws.on("message",(data)=>{
-      const parsedData=JSON.parse(data as unknown as string);
+ 
+   ws.on("message",async(data)=>{
+      const parsedData=JSON.parse(data as unknown as string) as {type:string,data:{
+        roomId:number,
+        message?:string
+      }};
       console.log(parsedData)
       const username=userDetails?.username
       const {roomId}=parsedData.data
@@ -44,14 +50,23 @@ wss.on("connection",async(ws:WebSocket,req:any)=>{
 
           }
         else{
-         allSockets.get(roomId)?.push({socket:ws,username:username})
+          // edge case what if user try to join the room again
+          // check is this user already been in this room if yes ignore if no then proceed as it is
+          const allUser=allSockets.get(roomId);
+          const isExist=allUser?.find(user=>user.socket===ws)
+          if(!isExist){
+             allSockets.get(roomId)?.push({ socket: ws, username: username });
+          }
+
+
+        
           
         }
           const allusers = allSockets.get(roomId);
           allusers?.forEach((user) => {
             user.socket.send(
               JSON.stringify({
-                type: "Join-room",
+                type: "join-room",
                 data: {
                   roomId,
                   noOfUserJoined: allusers.length,
@@ -62,21 +77,23 @@ wss.on("connection",async(ws:WebSocket,req:any)=>{
 
       }
       else if (parsedData.type === "chat") {
-          const message=parsedData.data.message
+          const message=parsedData.data.message || ""
           const allusers=allSockets.get(roomId);
           allusers?.forEach(user=>{
             if(user.socket!==ws){
                 user.socket.send(JSON.stringify({
                   type:'chat',
                   data:{
-                    message:message
+                    message:message,
+                    roomId:roomId,
+                    username
                   }
                 }))
             }
           })
-          prisma.chat.create({
+         await  prisma.chat.create({
             data:{
-              userId:1,
+              userId:decode.userId,
               roomId,
               message:message
             }
@@ -88,16 +105,17 @@ wss.on("connection",async(ws:WebSocket,req:any)=>{
                     allSockets.delete(roomId)
                 }
                 else{
-                  allusers=allusers?.filter(user=>user.socket===ws);
+                  allusers=allusers?.filter(user=>user.socket!==ws);
 
 
                  if(allusers)  allSockets.set(roomId, allusers);
 
                 }
+                // notified the client first then close the connection-->pending...
                 ws.close()
                 return;
       }
-    ws.send("pong")
+    ws.send("pong will alway be there only at socket layer")
       return;
      
    })

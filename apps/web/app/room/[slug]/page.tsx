@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 
 async function getRoomId(slug: string) {
  const cookieHeader = (await cookies()).toString();
-  console.log(`/getroomId?slug=${slug}`);
+//  url needs to be change
   const res = await apiInstance.get(`/getroomId?slug=${slug}`,{
     headers:{
       cookie:cookieHeader

@@ -1,8 +1,24 @@
-
-
 @import "tailwindcss";
 
-@theme{
-  --color-background:#ffffff;
-  --color-foreground:#171717;
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #171717;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: #f7f5ef;
+}
+
+::selection {
+  background: #f8d84a;
+  color: #20211e;
 }
