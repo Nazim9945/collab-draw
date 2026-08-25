@@ -190,9 +190,9 @@ app.get('/allrooms',auth,async(req,res)=>{
       //( optional ) add pagination for rooms
       
 })
-app.get('/room/:slug',auth,async(req,res)=>{
-  console.log(req.params.slug);
-  const slug=req.params.slug as string
+app.get('/getroomId',auth,async(req,res)=>{
+ 
+  const slug=req.query.slug as string
   try {
     const roomId=await prisma.room.findFirst({
       where:{

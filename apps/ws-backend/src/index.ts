@@ -1,9 +1,8 @@
 import { WebSocket, WebSocketServer } from "ws";
 import {prisma} from '@repo/db/prisma'
-import url from 'url'
 import jwt from 'jsonwebtoken'
 import {SECRET_KEY} from '@repo/common'
-const wss = new WebSocketServer({ port: 8000 });
+const wss = new WebSocketServer({ port: 3002 });
 
 interface User {
   socket: WebSocket;
@@ -12,31 +11,40 @@ interface User {
 let allSockets = new Map<number, User[]>();
 
 
-wss.on("connection",(ws:WebSocket,req:any)=>{
+wss.on("connection",async(ws:WebSocket,req:any)=>{
 
-  const token = (url.parse(req.url, true).query).token as string;
- 
-  // const decode=jwt.verify(token,SECRET_KEY) as {userId:string}
-  // console.log(decode)
-  // if(!decode || !decode.userId){
-  //   ws.close();
-  //   return;
-  // }
+  // const token = (url.parse(req.url, true).query).token as string;
+  const token = req.headers["sec-websocket-protocol"];
+  const decode=jwt.verify(token,SECRET_KEY) as {userId:number}
+  console.log(decode)
+  if(!decode || !decode.userId){
+    ws.close();
+    return;
+  }
+  const userDetails=await prisma.user.findFirst({
+    where:{
+      id:decode.userId
+    }
+  })
+  if(!userDetails){
+    return ws.close()
+  }
   console.log("1")
    ws.on("message",(data)=>{
       const parsedData=JSON.parse(data as unknown as string);
       console.log(parsedData)
-      const {username:userName,roomId}=parsedData.data
+      const username=userDetails?.username
+      const {roomId}=parsedData.data
       if(parsedData.type==='join-room'){
          
           if(!allSockets.get(roomId)){
              
-              allSockets.set(roomId,[{username:userName,socket:ws}])
+              allSockets.set(roomId,[{username:username,socket:ws}])
             
 
           }
         else{
-         allSockets.get(roomId)?.push({socket:ws,username:userName})
+         allSockets.get(roomId)?.push({socket:ws,username:username})
           
         }
           const allusers = allSockets.get(roomId);

@@ -2,8 +2,8 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiInstance } from "../config";
-import RoomCard from "../components/RoomCard";
+import { apiInstance } from "../../config";
+import RoomCard from "../../components/RoomCard";
 
 import Link from "next/link";
 
@@ -95,7 +95,7 @@ export default function Dashboard() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {rooms.map((room) => (
-            <Link key={room.userId} href={`/room/${room.id}`}>
+            <Link key={room.id} href={`/room/${room.slug}`}>
               <RoomCard room={room} />
             </Link>
           ))}

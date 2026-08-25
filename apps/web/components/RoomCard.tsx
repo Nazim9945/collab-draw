@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Room } from "../dashboard/page";
+import { Room } from "../app/dashboard/page";
 
 export default function RoomCard({ room }: { room: Room }) {
   return (
