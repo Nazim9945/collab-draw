@@ -15,6 +15,14 @@ async function getLatestChat(roomId: number) {
 }
 
 export async function ChatRoom({ roomId}: { roomId: number }) {
+  const cookieHeader = (await cookies()).toString();
   const latestChats = await getLatestChat(roomId);
-  return <ChatRoomClient chats={latestChats} roomId={roomId}/>;
+   const {
+     data: { username },
+   } = await apiInstance.get<{ username: string }>("/me", {
+     headers: {
+       cookie: cookieHeader,
+     },
+   });
+  return <ChatRoomClient chats={latestChats} roomId={roomId} username={username}/>;
 }

@@ -13,34 +13,45 @@ let allSockets = new Map<number, User[]>();
 
 wss.on("connection",async(ws:WebSocket,req:any)=>{
 
-  // const token = (url.parse(req.url, true).query).token as string;
-  const token = req.headers["sec-websocket-protocol"];
+  
+ 
+  
+ 
+  const token = req.headers.cookie.split("token=")[1];
+  if(!token){
+    console.log("ws token is missing")
+    return ws.close();
+  }
+ 
   const decode=jwt.verify(token,SECRET_KEY) as {userId:number}
   console.log(decode)
   if(!decode || !decode.userId){
+    console.log("error while decoding at ws")
     ws.close();
     return;
   }
-  const userDetails=await prisma.user.findFirst({
-    where:{
-      id:decode.userId
-    },
-    select:{
-      username:true
-    }
-  })
-  if(!userDetails){
-    return ws.close()
-  }
- 
+//   const userDetails=await prisma.user.findFirst({
+//     where:{
+//       id:decode.userId
+//     },
+//     select:{
+//       username:true
+//     }
+//   })
+//   if(!userDetails){
+//     console.log("ws->found no user details")
+//     return ws.close()
+//   }
+//  console.log(userDetails.username)
    ws.on("message",async(data)=>{
       const parsedData=JSON.parse(data as unknown as string) as {type:string,data:{
         roomId:number,
-        message?:string
+        message?:string,
+        username:string
       }};
       console.log(parsedData)
-      const username=userDetails?.username
-      const {roomId}=parsedData.data
+    
+      const {roomId,username}=parsedData.data
       if(parsedData.type==='join-room'){
          
           if(!allSockets.get(roomId)){
@@ -115,7 +126,7 @@ wss.on("connection",async(ws:WebSocket,req:any)=>{
                 ws.close()
                 return;
       }
-    ws.send("pong will alway be there only at socket layer")
+   
       return;
      
    })
