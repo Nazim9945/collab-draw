@@ -224,16 +224,26 @@ app.get('/getroomId',auth,async(req,res)=>{
 app.get('/room/:roomId',auth,async(req,res)=>{
   const roomId=Number(req.params.roomId) as number
   try {
-    const chats=await prisma.chat.findMany({
+    let chats=await prisma.chat.findMany({
       where:{
         roomId
       },
+      include:{
+        user:{
+          select:{username:true}
+        }
+      },
       take:50
     })
+   const updateChats=chats.map((chat)=>{
+    const {user:{username},...allchat}=chat
+    return {...allchat,username}
+    
+   })
     return res.status(200).json({
       success:true,
       message:"fetched all the chats successfully!!",
-      data:chats
+      data:updateChats
     })
   } catch (error) {
     console.log(error)

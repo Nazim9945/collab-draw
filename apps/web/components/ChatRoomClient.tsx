@@ -2,9 +2,11 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { useSocket } from "../hooks/useSocket";
+import { Chat } from "./ChatRoom";
 
 function getInitials(username: string) {
- return "N/A"
+ const name=username.slice(0,2);
+ return name
 }
 
 export function ChatRoomClient({
@@ -12,13 +14,13 @@ export function ChatRoomClient({
   roomId,
   username,
 }: {
-  chats: { roomId: number; message: string; username: string }[];
+  chats: Chat[];
   roomId: number;
   username: string;
 }) {
   const { ws, loading } = useSocket(roomId);
   const [message, setMessage] =
-    useState<{ roomId: number; message: string; username: string }[]>(chats);
+    useState<Chat[]>(chats);
   const [noOfUserInRoom, setNoOfUserInRoom] = useState(0);
   const [text, setText] = useState("");
   const bottomRef = useRef<HTMLDivElement | null>(null);
