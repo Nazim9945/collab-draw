@@ -1,12 +1,14 @@
 import { cookies } from "next/headers";
 import { apiInstance } from "../config";
 import { ChatRoomClient } from "./ChatRoomClient";
+import CanvasClient from "./CanvasClient";
 
 
 export interface Chat{
   message:string,
   roomId:number,
- username:string
+  username:string
+ 
 }
 interface chatRes{
   success:boolean,
@@ -34,5 +36,5 @@ export async function ChatRoom({ roomId}: { roomId: number }) {
        cookie: cookieHeader,
      },
    });
-  return <ChatRoomClient chats={latestChats} roomId={roomId} username={username}/>;
+  return <CanvasClient shapes={latestChats} roomId={roomId} username={username}/>;
 }

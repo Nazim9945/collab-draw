@@ -4,6 +4,16 @@ import jwt from 'jsonwebtoken'
 import {SECRET_KEY} from '@repo/common'
 const wss = new WebSocketServer({ port: 3002 });
 
+interface Shape{
+            type:"Rect" | "Circle",
+            data:{
+              x:number,
+              y:number,
+              width:number,
+              height:number
+            }
+}
+
 interface User {
   socket: WebSocket;
   username: string;
@@ -22,31 +32,25 @@ wss.on("connection",async(ws:WebSocket,req:any)=>{
     console.log("ws token is missing")
     return ws.close();
   }
- 
-  const decode=jwt.verify(token,SECRET_KEY) as {userId:number}
-  console.log(decode)
-  if(!decode || !decode.userId){
-    console.log("error while decoding at ws")
-    ws.close();
-    return;
-  }
-//   const userDetails=await prisma.user.findFirst({
-//     where:{
-//       id:decode.userId
-//     },
-//     select:{
-//       username:true
-//     }
-//   })
-//   if(!userDetails){
-//     console.log("ws->found no user details")
-//     return ws.close()
-//   }
-//  console.log(userDetails.username)
+ let decode:any
+ try {
+    decode = jwt.verify(token, SECRET_KEY) as { userId: number };
+   console.log(decode);
+   if (!decode || !decode.userId) {
+     console.log("error while decoding at ws");
+     ws.close();
+     return;
+   }
+
+ } catch (error) {
+  console.log(error)
+ }
+  
+
    ws.on("message",async(data)=>{
       const parsedData=JSON.parse(data as unknown as string) as {type:string,data:{
         roomId:number,
-        message?:string,
+        message?:Shape,
         username:string
       }};
       console.log(parsedData)
@@ -88,14 +92,14 @@ wss.on("connection",async(ws:WebSocket,req:any)=>{
 
       }
       else if (parsedData.type === "chat") {
-          const message=parsedData.data.message || ""
+          const shape=parsedData.data.message as Shape
           const allusers=allSockets.get(roomId);
           allusers?.forEach(user=>{
             if(user.socket!==ws){
                 user.socket.send(JSON.stringify({
                   type:'chat',
                   data:{
-                    message:message,
+                    message:shape,
                     roomId:roomId,
                     username
                   }
@@ -106,7 +110,7 @@ wss.on("connection",async(ws:WebSocket,req:any)=>{
             data:{
               userId:decode.userId,
               roomId,
-              message:message
+              message:JSON.stringify(shape)
             }
           })
       }
