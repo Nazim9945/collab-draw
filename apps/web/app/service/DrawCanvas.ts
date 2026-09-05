@@ -12,10 +12,19 @@ export function clearCanvas(
     shape?.map((sha) => {
     
       const parsed = JSON.parse(sha.message) as Shape;
-      const { x, y, width, height } = parsed.data;
+      if(parsed.type==='Rect'){
+          const { x, y, width, height } = parsed.data;
 
-      ctx.strokeStyle = "white";
-      ctx.strokeRect(x, y, width, height);
+          ctx.strokeStyle = "white";
+          ctx.strokeRect(x, y, width, height);
+      }
+      else if(parsed.type==='Circle'){
+        const {centerX,centerY,radius}=parsed.data
+         ctx.beginPath();
+         ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+         ctx.stroke();
+      }
+      
     });
   }
 

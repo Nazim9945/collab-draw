@@ -161,14 +161,21 @@ import { Chat } from "./ChatRoom";
 import { clearCanvas } from "../app/service/DrawCanvas";
 import { ToolCollection } from "./ToolCollection";
 
-export interface Shape {
-  type: "Rect" | "Circle";
+export type Shape = {
+  type: "Rect";
   data: {
     x: number;
     y: number;
     height: number;
     width: number;
   };
+} | {
+  type: "Circle",
+  data:{
+    centerX:number,
+    centerY:number,
+    radius:number
+  }
 }
 
 export default function CanvasClient({
@@ -236,15 +243,31 @@ export default function CanvasClient({
       move = false;
       const width = e.clientX - startX;
       const height = e.clientY - startY;
+let newShapeObj: Shape;
+     if(tool==='Rect'){
+       ctx.strokeStyle = "white";
+       ctx.strokeRect(startX, startY, width, height);
 
-      ctx.strokeStyle = "white";
-      ctx.strokeRect(startX, startY, width, height);
-
-      const newShapeObj: Shape = {
-        type: "Rect",
-        data: { x: startX, y: startY, width, height },
-      };
-
+        newShapeObj = {
+         type: "Rect",
+         data: { x: startX, y: startY, width, height },
+       };
+     }
+     else if (tool==='Circle'){
+       ctx.strokeStyle = "white";
+      
+       const X = Math.abs(width / 2 + startX);
+       const Y = Math.abs(height / 2 + startY);
+       const radius = Math.abs(Math.max(width / 2, height / 2));
+        ctx.beginPath();
+       ctx.arc(X, Y, radius, 0, 2 * Math.PI);
+       ctx.stroke();
+        newShapeObj = {
+          type: "Circle",
+          data: { centerX: X, centerY: Y, radius},
+        };
+     }
+  
       setShape((prev) => [
         ...prev,
         {
@@ -257,7 +280,7 @@ export default function CanvasClient({
       const obj = {
         type: "chat",
         data: {
-          message: newShapeObj,
+          message: newShapeObj!,
           roomId,
           username,
         },
@@ -273,8 +296,19 @@ export default function CanvasClient({
       const width = e.clientX - startX;
       const height = e.clientY - startY;
       clearCanvas(shape, ctx, canvas); // always latest shapes
-      ctx.strokeStyle = "white";
-      ctx.strokeRect(startX, startY, width, height);
+      
+     if(tool==='Rect'){
+       ctx.strokeStyle = "white";
+       ctx.strokeRect(startX, startY, width, height);
+     }
+     else if (tool==='Circle'){
+      const X =Math.abs( width / 2 + startX);
+      const Y = Math.abs(height / 2 + startY);
+      const radius = Math.abs(Math.max(width / 2, height / 2));
+       ctx.beginPath();
+       ctx.arc(X, Y, radius, 0, 2 * Math.PI);
+       ctx.stroke();
+     }
     };
 
     canvas.addEventListener("mousedown", handleMouseDown);
@@ -286,7 +320,7 @@ export default function CanvasClient({
       canvas.removeEventListener("mouseup", handleMouseUp);
       canvas.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [roomId, username, ws,shape]);
+  }, [roomId, username, ws,shape,tool]);
 
   // --- Websocket receive: separate effect, re-attaches only when ws changes ---
   useEffect(() => {
