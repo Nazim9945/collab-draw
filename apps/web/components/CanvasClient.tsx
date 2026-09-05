@@ -159,6 +159,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSocket } from "../hooks/useSocket";
 import { Chat } from "./ChatRoom";
 import { clearCanvas } from "../app/service/DrawCanvas";
+import { ToolCollection } from "./ToolCollection";
 
 export interface Shape {
   type: "Rect" | "Circle";
@@ -181,12 +182,14 @@ export default function CanvasClient({
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const { ws, loading } = useSocket(roomId);
+  const [tool,setTool]=useState("Rect")
 
   const [shape, setShape] = useState<Chat[]>(shapes);
+  console.log("selected tool: ",tool)
 //   const shapeRef = useRef<Chat[]>(shapes);
 
  
-  const [size, setSize] = useState({ width: 800, height: 500 });
+  const [size, setSize] = useState({ width: window.innerWidth, height: window.innerHeight });
 
   
 
@@ -327,6 +330,7 @@ export default function CanvasClient({
     };
 
     ws.addEventListener("message", handleMessage);
+    // ws.onmessage=handleMessage
     return () => ws.removeEventListener("message", handleMessage);
   }, [ws, username]);
 
@@ -339,11 +343,14 @@ export default function CanvasClient({
   }
 
   return (
-    <canvas
-      ref={canvasRef}
-      height={size.height}
-      width={size.width}
-      className="bg-black"
-    />
+    <>
+      <canvas
+        ref={canvasRef}
+        height={size.height}
+        width={size.width}
+        className="bg-black"
+      />
+     <ToolCollection tool={tool} setTool={setTool}/>
+    </>
   );
 }
