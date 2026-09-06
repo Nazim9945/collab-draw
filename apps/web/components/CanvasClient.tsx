@@ -161,38 +161,39 @@ import { Chat } from "./ChatRoom";
 import { clearCanvas } from "../app/service/DrawCanvas";
 import { ToolCollection } from "./ToolCollection";
 
-export type Shape = {
-  type: "Rect";
-  data: {
-    x: number;
-    y: number;
-    height: number;
-    width: number;
-  };
-} | {
-  type: "Circle",
-  data:{
-    centerX:number,
-    centerY:number,
-    radius:number
-  }
-} | {
-  type:"Line",
-  data:{
-    startX:number,
-    startY:number,
-    endX:number,
-    endY:number
-  }
-} | {
-  type:"Pencil",
-  data:{
-    startX:number,
-    startY:number,
-    endX:number,
-    endY:number
-  }
-}
+export type Shape =
+  | {
+      type: "Rect";
+      data: {
+        x: number;
+        y: number;
+        height: number;
+        width: number;
+      };
+    }
+  | {
+      type: "Circle";
+      data: {
+        centerX: number;
+        centerY: number;
+        radius: number;
+      };
+    }
+  | {
+      type: "Line";
+      data: {
+        startX: number;
+        startY: number;
+        endX: number;
+        endY: number;
+      };
+    }
+  | {
+      type: "Pencil";
+      data: {
+        pencilPoints:{x:number,y:number}[]
+      };
+    };
 
 export default function CanvasClient({
   shapes,
@@ -246,13 +247,16 @@ export default function CanvasClient({
     let startX = 0;
     let startY = 0;
     let move = false;
-
+    let pencilPoints:{x:number,y:number}[]=[]
     clearCanvas(shape, ctx, canvas);
 
     const handleMouseDown = (e: MouseEvent) => {
       move = true;
       startX = e.clientX;
       startY = e.clientY;
+      if(tool==='Pencil'){
+        pencilPoints = [{ x: startX, y: startY }];
+      }
     };
 
     const handleMouseUp = (e: MouseEvent) => {
@@ -295,25 +299,24 @@ let newShapeObj: Shape;
            
      }
      else if(tool==='Pencil'){
-       if (e.buttons !== 1) return;
-
+    
        ctx.beginPath(); // begin
 
-       ctx.lineWidth = 5;
-       ctx.lineCap = "round";
-       ctx.strokeStyle = "#c0392b";
+       // @ts-ignore
+       ctx.moveTo(pencilPoints[0].x, pencilPoints[0].y);
 
-       ctx.moveTo(startX, startY); // from
-      
-       ctx.lineTo(e.clientX, e.clientY); // to
+       for (let i = 1; i < pencilPoints.length; i++) {
+         // @ts-ignore
+         ctx.lineTo(pencilPoints[i].x, pencilPoints[i].y);
+       }
 
        ctx.stroke(); // draw it!
-         newShapeObj = {
-           type: "Pencil",
-           data: { startX, startY, endX: e.clientX, endY: e.clientY },
-         };
+       newShapeObj = {
+         type: "Pencil",
+         data: { pencilPoints },
+       };
      }
-  
+   
       setShape((prev) => [
         ...prev,
         {
@@ -341,6 +344,7 @@ let newShapeObj: Shape;
       if (!move) return;
       const width = e.clientX - startX;
       const height = e.clientY - startY;
+
       clearCanvas(shape, ctx, canvas); // always latest shapes
       
      if(tool==='Rect'){
@@ -362,17 +366,21 @@ let newShapeObj: Shape;
          ctx.stroke();
      }
      else if(tool==='Pencil'){
-       if (e.buttons !== 1) return;
+      
+      pencilPoints.push({ x: e.clientX, y: e.clientY });
+     
        ctx.beginPath(); // begin
 
-       ctx.lineWidth = 5;
-       ctx.lineCap = "round";
-       ctx.strokeStyle = "#c0392b";
 
-       ctx.moveTo(startX, startY); // from
-
-       ctx.lineTo(e.clientX, e.clientY); // to
-        ctx.closePath()
+  // @ts-ignore
+       ctx.moveTo(pencilPoints[0].x, pencilPoints[0].y);
+     
+      for (let i = 1; i < pencilPoints.length; i++) {
+        // @ts-ignore
+        ctx.lineTo(pencilPoints[i].x, pencilPoints[i].y);
+      }
+      
+        
        ctx.stroke(); // draw it!
      }
     };

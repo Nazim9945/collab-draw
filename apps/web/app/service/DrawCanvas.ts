@@ -32,18 +32,19 @@ export function clearCanvas(
         ctx.stroke(); 
       }
       else if(parsed.type==='Pencil'){
-        const { startX, startY, endX, endY } = parsed.data;
+        const {pencilPoints}=parsed.data
+     
         ctx.beginPath(); // begin
 
-        ctx.lineWidth = 5;
-        ctx.lineCap = "round";
-        ctx.strokeStyle = "#c0392b";
+        // @ts-ignore
+        ctx.moveTo(pencilPoints[0].x, pencilPoints[0].y);
 
-        ctx.moveTo(startX, startY); 
+        for (let i = 1; i < pencilPoints.length; i++) {
+          // @ts-ignore
+          ctx.lineTo(pencilPoints[i].x, pencilPoints[i].y);
+        }
 
-        ctx.lineTo(endX, endY); 
-
-        ctx.stroke(); 
+        ctx.stroke(); // draw it!
       }
       
     });
