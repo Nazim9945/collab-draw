@@ -17,8 +17,8 @@ export function ToolCollection({tool,setTool}:{tool:string,setTool:(tool:string)
         <Circle />
       </div>
       <div
-        onClick={() => setTool("Minus")}
-        className={`${tool === "Minus" && "bg-cyan-900/80"} rounded-md p-1`}
+        onClick={() => setTool("Line")}
+        className={`${tool === "Line" && "bg-cyan-900/80"} rounded-md p-1`}
       >
         <Minus />
       </div>

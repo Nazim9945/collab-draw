@@ -176,6 +176,22 @@ export type Shape = {
     centerY:number,
     radius:number
   }
+} | {
+  type:"Line",
+  data:{
+    startX:number,
+    startY:number,
+    endX:number,
+    endY:number
+  }
+} | {
+  type:"Pencil",
+  data:{
+    startX:number,
+    startY:number,
+    endX:number,
+    endY:number
+  }
 }
 
 export default function CanvasClient({
@@ -264,8 +280,38 @@ let newShapeObj: Shape;
        ctx.stroke();
         newShapeObj = {
           type: "Circle",
-          data: { centerX: X, centerY: Y, radius},
+          data: { centerX: X, centerY: Y, radius }
         };
+     }
+     else if(tool==='Line'){
+          ctx.beginPath();
+          ctx.moveTo(startX, startY);
+          ctx.lineTo(e.clientX, e.clientY);
+          ctx.stroke();
+            newShapeObj = {
+              type: "Line",
+              data: { startX, startY, endX: e.clientX, endY: e.clientY },
+            };
+           
+     }
+     else if(tool==='Pencil'){
+       if (e.buttons !== 1) return;
+
+       ctx.beginPath(); // begin
+
+       ctx.lineWidth = 5;
+       ctx.lineCap = "round";
+       ctx.strokeStyle = "#c0392b";
+
+       ctx.moveTo(startX, startY); // from
+      
+       ctx.lineTo(e.clientX, e.clientY); // to
+
+       ctx.stroke(); // draw it!
+         newShapeObj = {
+           type: "Pencil",
+           data: { startX, startY, endX: e.clientX, endY: e.clientY },
+         };
      }
   
       setShape((prev) => [
@@ -308,6 +354,26 @@ let newShapeObj: Shape;
        ctx.beginPath();
        ctx.arc(X, Y, radius, 0, 2 * Math.PI);
        ctx.stroke();
+     }
+     else if(tool==='Line'){
+         ctx.beginPath();
+         ctx.moveTo(startX, startY);
+         ctx.lineTo(e.clientX,e.clientY)
+         ctx.stroke();
+     }
+     else if(tool==='Pencil'){
+       if (e.buttons !== 1) return;
+       ctx.beginPath(); // begin
+
+       ctx.lineWidth = 5;
+       ctx.lineCap = "round";
+       ctx.strokeStyle = "#c0392b";
+
+       ctx.moveTo(startX, startY); // from
+
+       ctx.lineTo(e.clientX, e.clientY); // to
+        ctx.closePath()
+       ctx.stroke(); // draw it!
      }
     };
 

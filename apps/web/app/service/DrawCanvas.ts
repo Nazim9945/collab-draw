@@ -24,6 +24,27 @@ export function clearCanvas(
          ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
          ctx.stroke();
       }
+      else if(parsed.type==='Line'){
+        const { startX, startY,endX,endY } = parsed.data;
+        ctx.beginPath(); 
+        ctx.moveTo(startX, startY); 
+        ctx.lineTo(endX, endY); 
+        ctx.stroke(); 
+      }
+      else if(parsed.type==='Pencil'){
+        const { startX, startY, endX, endY } = parsed.data;
+        ctx.beginPath(); // begin
+
+        ctx.lineWidth = 5;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = "#c0392b";
+
+        ctx.moveTo(startX, startY); 
+
+        ctx.lineTo(endX, endY); 
+
+        ctx.stroke(); 
+      }
       
     });
   }
