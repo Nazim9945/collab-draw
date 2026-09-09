@@ -213,7 +213,9 @@ export default function CanvasClient({
 //   const shapeRef = useRef<Chat[]>(shapes);
 
  
-  const [size, setSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  const offsetX=useRef<number>(0)
+  const offsetY=useRef<number>(0)
 
   
 
@@ -247,22 +249,44 @@ export default function CanvasClient({
     let startX = 0;
     let startY = 0;
     let move = false;
+   
     let pencilPoints:{x:number,y:number}[]=[]
+    let isPanning=false;
+     if(tool==='Grab'){
+        canvas.style.cursor="grab"
+      }
+      else {
+        canvas.style.cursor = "crosshair";
+      }
     clearCanvas(shape, ctx, canvas);
 
     const handleMouseDown = (e: MouseEvent) => {
       move = true;
-      startX = e.clientX;
-      startY = e.clientY;
+      startX = e.clientX - offsetX.current;
+      startY = e.clientY - offsetY.current;
       if(tool==='Pencil'){
         pencilPoints = [{ x: startX, y: startY }];
       }
+      else if(tool==='Grab'){
+        isPanning=true
+      }     
     };
 
     const handleMouseUp = (e: MouseEvent) => {
       move = false;
       const width = e.clientX - startX;
       const height = e.clientY - startY;
+      
+      if(isPanning && tool==='Grab'){
+          // offsetX=e.clientX-startX;
+          // offsetY=e.clientY-startY
+          ctx.save()
+          ctx.setTransform(1,0,0,1,offsetX.current,offsetY.current);
+          clearCanvas(shape,ctx,canvas);
+          ctx.restore()
+          isPanning = false;
+          return;
+      }
 let newShapeObj: Shape;
      if(tool==='Rect'){
        ctx.strokeStyle = "white";
@@ -342,9 +366,24 @@ let newShapeObj: Shape;
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!move) return;
+      // let offsetX=0;
+      // let offsetY=0;
+      if(isPanning && tool==='Grab'){
+      
+          const dx = e.clientX - startX;
+          const dy = e.clientY - startY;
+          offsetX.current += dx;
+          offsetY.current += dy;
+          startX = e.clientX;
+          startY = e.clientY;
+          ctx.setTransform(1, 0, 0,1, offsetX.current, offsetY.current);
+          clearCanvas(shape, ctx, canvas);
+          return;
+        
+      }
       const width = e.clientX - startX;
       const height = e.clientY - startY;
-
+     
       clearCanvas(shape, ctx, canvas); // always latest shapes
       
      if(tool==='Rect'){
