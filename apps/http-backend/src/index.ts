@@ -87,8 +87,8 @@ app.post('/signup',async(req,res)=>{
       return res
         .cookie("token", token, {
           httpOnly: true,
-          maxAge: 24 * 60 * 60 * 60 * 1000,
-          secure: true
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+          secure: process.env.NODE_ENV === "production",
         })
         .status(200)
         .json({
@@ -144,8 +144,8 @@ if ( !password || !email) {
     return res
       .cookie("token", token, {
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 60 * 1000,
-        secure:true
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        secure: process.env.NODE_ENV === "production",
         
       })
       .status(200)

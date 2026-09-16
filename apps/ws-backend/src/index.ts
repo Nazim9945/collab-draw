@@ -23,11 +23,8 @@ let allSockets = new Map<number, User[]>();
 
 wss.on("connection",async(ws:WebSocket,req:any)=>{
 
-  
- 
-  
- 
-  const token = req.headers.cookie.split("token=")[1];
+  const token = req.headers["sec-websocket-protocol"]?.split(",")[0].trim()
+    ?? req.headers.cookie?.match(/(?:^|;\s*)token=([^;]+)/)?.[1];
   if(!token){
     console.log("ws token is missing")
     return ws.close();
@@ -44,6 +41,7 @@ wss.on("connection",async(ws:WebSocket,req:any)=>{
 
  } catch (error) {
   console.log(error)
+  return ws.close();
  }
   
 
