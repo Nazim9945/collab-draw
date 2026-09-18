@@ -54,6 +54,7 @@ export class Canvas {
   private isPanning: boolean;
   private lastPanX: number;
   private lastPanY: number;
+  private zoom: number;
   private pencilPoints: { x: number; y: number }[];
   private ws: WebSocket;
   private username: string;
@@ -78,6 +79,7 @@ export class Canvas {
     this.isPanning = false;
     this.lastPanX = 0;
     this.lastPanY = 0;
+    this.zoom = 1;
     this.pencilPoints = [];
     this.username = username;
     this.tool = tool;
@@ -87,31 +89,21 @@ export class Canvas {
     this.initMouseHandler();
   }
   async init() {
-   
-
     this.existingShape = await getRoomAllShapes(this.roomId);
 
     this.renderExistingShape();
   }
-  panning() {
-    this.renderCanvas();
-  }
 
   renderCanvas() {
     this.clearCanvas();
-   
-    // this.ctx.translate(this.offsetX, this.offsetY);
-    this.ctx.setTransform(1, 0, 0, 1, this.offsetX, this.offsetY);
+    this.ctx.setTransform(this.zoom, 0, 0, this.zoom, this.offsetX, this.offsetY);
     this.renderExistingShape();
-    
   }
 
   getCanvasPoint(e: MouseEvent) {
-   
-
     return {
-      x: e.clientX  - this.offsetX,
-      y: e.clientY  - this.offsetY,
+      x: e.clientX - this.offsetX,
+      y: e.clientY - this.offsetY,
     };
   }
   setTool(tool: string) {
@@ -208,10 +200,9 @@ export class Canvas {
     });
   }
   handleMouseDown = (e: MouseEvent) => {
-  
     this.move = true;
     if (this.tool === "Grab") {
-        e.preventDefault();
+      e.preventDefault();
       this.isPanning = true;
       this.lastPanX = e.clientX;
       this.lastPanY = e.clientY;
@@ -219,8 +210,8 @@ export class Canvas {
     }
 
     const point = this.getCanvasPoint(e);
-    this.startX = point.x;
-    this.startY = point.y;
+    this.startX = point.x /this.zoom;
+    this.startY = point.y / this.zoom;
     if (this.tool === "Pencil") {
       this.pencilPoints = [{ x: this.startX, y: this.startY }];
     }
@@ -230,15 +221,14 @@ export class Canvas {
 
     if (this.isPanning && this.tool === "Grab") {
       this.isPanning = false;
-      this.lastPanX=0;
-      this.lastPanY=0;
-      
+      this.lastPanX = 0;
+      this.lastPanY = 0;
 
       return;
     }
     const point = this.getCanvasPoint(e);
-    const width = point.x - this.startX;
-    const height = point.y - this.startY;
+    const width = point.x / this.zoom - this.startX;
+    const height =point.y / this.zoom - this.startY;
     let newShapeObj: Shape;
     if (this.tool === "Rect") {
       newShapeObj = {
@@ -293,7 +283,6 @@ export class Canvas {
     }
   };
   handleMouseMove = (e: MouseEvent) => {
-   
     if (this.isPanning && this.tool === "Grab") {
       const dx = e.clientX - this.lastPanX;
       const dy = e.clientY - this.lastPanY;
@@ -301,18 +290,16 @@ export class Canvas {
       this.offsetY += dy;
       this.lastPanX = e.clientX;
       this.lastPanY = e.clientY;
-      this.panning();
+      this.renderCanvas();
 
       return;
     }
-    if(!this.move) return
+    if (!this.move) return;
     const point = this.getCanvasPoint(e);
-    const width = point.x - this.startX;
-    const height = point.y - this.startY;
+   const width = point.x / this.zoom - this.startX;
+   const height = point.y / this.zoom - this.startY;
 
     this.renderCanvas();
-    // this.clearCanvas();
-    // this.renderExistingShape()
 
     if (this.tool === "Rect") {
       this.ctx.strokeStyle = "white";
@@ -346,15 +333,36 @@ export class Canvas {
       this.ctx.stroke(); // draw it!
     }
   };
+  handleMouseWheel= (e:WheelEvent)=>{
+    e.preventDefault()
+    const sign=Math.sign(e.deltaY);
+     const mouseX = e.clientX;
+     const mouseY = e.clientY;
+     const pointX = (mouseX - this.offsetX) / this.zoom;
+     const pointY = (mouseY - this.offsetY) / this.zoom;
+    this.zoom+=sign * 0.1
+    this.zoom=Math.min(Math.max(this.zoom,0.1),20)
+    console.log("zoom is : ",this.zoom)
+    this.offsetX = mouseX - pointX * this.zoom;
+    this.offsetY = mouseY - pointY * this.zoom;
+
+    
+   
+    this.renderCanvas()
+
+
+  }
   initMouseHandler() {
     this.canvas.addEventListener("mousedown", this.handleMouseDown);
     this.canvas.addEventListener("mouseup", this.handleMouseUp);
     this.canvas.addEventListener("mousemove", this.handleMouseMove);
+    this.canvas.addEventListener("wheel", this.handleMouseWheel);
   }
   destroy() {
     this.removeSocketHandler();
     this.canvas.removeEventListener("mousedown", this.handleMouseDown);
     this.canvas.removeEventListener("mouseup", this.handleMouseUp);
     this.canvas.removeEventListener("mousemove", this.handleMouseMove);
+    this.canvas.removeEventListener("wheel", this.handleMouseWheel);
   }
 }
