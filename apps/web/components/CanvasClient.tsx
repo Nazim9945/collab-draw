@@ -29,12 +29,7 @@ export default function CanvasClient({
   }, []);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    canvasBoardRef.current?.clearCanvas();
-    canvasBoardRef.current?.renderExistingShape();
+    canvasBoardRef.current?.renderCanvas();
   }, [size]);
 
   useEffect(() => {
@@ -77,7 +72,7 @@ export default function CanvasClient({
         ref={canvasRef}
         height={size.height}
         width={size.width}
-        className="bg-black"
+        className="bg-blue-800"
       />
       <ToolCollection  tool={tool} setTool={setTool} />
     </>

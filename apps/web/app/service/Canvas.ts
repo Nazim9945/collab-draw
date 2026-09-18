@@ -1,10 +1,7 @@
 import { getRoomAllShapes } from "./AllHttpCall";
 
-
-
-
 type Shape =
-{
+  | {
       type: "Rect";
       data: {
         x: number;
@@ -12,14 +9,16 @@ type Shape =
         height: number;
         width: number;
       };
-}  |  {
+    }
+  | {
       type: "Circle";
       data: {
         centerX: number;
         centerY: number;
         radius: number;
       };
-    } | {
+    }
+  | {
       type: "Line";
       data: {
         startX: number;
@@ -27,21 +26,19 @@ type Shape =
         endX: number;
         endY: number;
       };
-    }  | {
+    }
+  | {
       type: "Pencil";
       data: {
-        pencilPoints:{x:number,y:number}[]
+        pencilPoints: { x: number; y: number }[];
       };
     };
-
 
 export interface shapeMess {
   message: string;
   roomId: number;
   username: string;
 }
-
-
 
 export class Canvas {
   private canvas: HTMLCanvasElement;
@@ -55,11 +52,19 @@ export class Canvas {
   private offsetY: number;
   private tool: string;
   private isPanning: boolean;
+  private lastPanX: number;
+  private lastPanY: number;
   private pencilPoints: { x: number; y: number }[];
   private ws: WebSocket;
   private username: string;
-  
-  constructor(canvas: HTMLCanvasElement, roomId: number, username: string, tool:string,ws:WebSocket) {
+
+  constructor(
+    canvas: HTMLCanvasElement,
+    roomId: number,
+    username: string,
+    tool: string,
+    ws: WebSocket,
+  ) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d")!;
     this.existingShape = [];
@@ -71,26 +76,48 @@ export class Canvas {
     this.offsetY = 0;
     this.tool = "Rect";
     this.isPanning = false;
+    this.lastPanX = 0;
+    this.lastPanY = 0;
     this.pencilPoints = [];
     this.username = username;
-    this.tool=tool;
-    this.ws=ws
+    this.tool = tool;
+    this.ws = ws;
     this.init();
     this.initSocketHandler();
     this.initMouseHandler();
   }
   async init() {
-    this.clearCanvas();
-    
+   
+
     this.existingShape = await getRoomAllShapes(this.roomId);
+
+    this.renderExistingShape();
+  }
+  panning() {
+    this.renderCanvas();
+  }
+
+  renderCanvas() {
+    this.clearCanvas();
+   
+    // this.ctx.translate(this.offsetX, this.offsetY);
+    this.ctx.setTransform(1, 0, 0, 1, this.offsetX, this.offsetY);
     this.renderExistingShape();
     
   }
 
+  getCanvasPoint(e: MouseEvent) {
+   
+
+    return {
+      x: e.clientX  - this.offsetX,
+      y: e.clientY  - this.offsetY,
+    };
+  }
   setTool(tool: string) {
     this.tool = tool;
   }
- 
+
   socketMessageHandler = (event: MessageEvent) => {
     try {
       const message = JSON.parse(event.data) as { type: string; data: any };
@@ -120,22 +147,16 @@ export class Canvas {
             username: senderUsername,
           },
         ];
-        this.clearCanvas();
-        this.renderExistingShape()
+        this.renderCanvas();
       }
     } catch (err) {
       console.error("Failed to parse websocket message:", err);
     }
   };
   initSocketHandler() {
-    
-   
-   
-     if(this.ws){ 
-        this.ws.addEventListener("message", this.socketMessageHandler);
-
-     }
-    
+    if (this.ws) {
+      this.ws.addEventListener("message", this.socketMessageHandler);
+    }
   }
   removeSocketHandler() {
     if (this.ws && this.socketMessageHandler) {
@@ -143,7 +164,12 @@ export class Canvas {
     }
   }
   clearCanvas() {
+    this.ctx.save();
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    // this.ctx.fillStyle = "black";
+    // this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.restore();
   }
   renderExistingShape() {
     this.existingShape?.map((sha) => {
@@ -182,77 +208,62 @@ export class Canvas {
     });
   }
   handleMouseDown = (e: MouseEvent) => {
+  
     this.move = true;
-    this.startX = e.clientX - this.offsetX;
-    this.startY = e.clientY - this.offsetY;
+    if (this.tool === "Grab") {
+        e.preventDefault();
+      this.isPanning = true;
+      this.lastPanX = e.clientX;
+      this.lastPanY = e.clientY;
+      return;
+    }
+
+    const point = this.getCanvasPoint(e);
+    this.startX = point.x;
+    this.startY = point.y;
     if (this.tool === "Pencil") {
       this.pencilPoints = [{ x: this.startX, y: this.startY }];
-    } else if (this.tool === "Grab") {
-      this.isPanning = true;
     }
   };
   handleMouseUp = (e: MouseEvent) => {
     this.move = false;
-    const width = e.clientX - this.startX;
-    const height = e.clientY - this.startY;
 
     if (this.isPanning && this.tool === "Grab") {
-      this.ctx.save();
-      this.ctx.setTransform(1, 0, 0, 1, this.offsetX, this.offsetY);
-      this.clearCanvas();
-      this.renderExistingShape();
-      this.ctx.restore();
       this.isPanning = false;
+      this.lastPanX=0;
+      this.lastPanY=0;
+      
+
       return;
     }
+    const point = this.getCanvasPoint(e);
+    const width = point.x - this.startX;
+    const height = point.y - this.startY;
     let newShapeObj: Shape;
     if (this.tool === "Rect") {
-      this.ctx.strokeStyle = "white";
-      this.ctx.strokeRect(this.startX, this.startY, width, height);
-
       newShapeObj = {
         type: "Rect",
         data: { x: this.startX, y: this.startY, width, height },
       };
     } else if (this.tool === "Circle") {
-      this.ctx.strokeStyle = "white";
-
-      const X = Math.abs(width / 2 + this.startX);
-      const Y = Math.abs(height / 2 + this.startY);
+      const X = width / 2 + this.startX;
+      const Y = height / 2 + this.startY;
       const radius = Math.abs(Math.max(width / 2, height / 2));
-      this.ctx.beginPath();
-      this.ctx.arc(X, Y, radius, 0, 2 * Math.PI);
-      this.ctx.stroke();
       newShapeObj = {
         type: "Circle",
         data: { centerX: X, centerY: Y, radius },
       };
     } else if (this.tool === "Line") {
-      this.ctx.beginPath();
-      this.ctx.moveTo(this.startX, this.startY);
-      this.ctx.lineTo(e.clientX, e.clientY);
-      this.ctx.stroke();
       newShapeObj = {
         type: "Line",
         data: {
           startX: this.startX,
           startY: this.startY,
-          endX: e.clientX,
-          endY: e.clientY,
+          endX: point.x,
+          endY: point.y,
         },
       };
     } else if (this.tool === "Pencil") {
-      this.ctx.beginPath(); // begin
-
-      // @ts-ignore
-      this.ctx.moveTo(this.pencilPoints[0].x, this.pencilPoints[0].y);
-
-      for (let i = 1; i < this.pencilPoints.length; i++) {
-        // @ts-ignore
-        this.ctx.lineTo(this.pencilPoints[i].x, this.pencilPoints[i].y);
-      }
-
-      this.ctx.stroke(); // draw it!
       newShapeObj = {
         type: "Pencil",
         data: { pencilPoints: this.pencilPoints },
@@ -267,9 +278,7 @@ export class Canvas {
         username: this.username,
       },
     ];
- this.clearCanvas();
- console.log("new one : ",this.existingShape)
- this.renderExistingShape();
+    this.renderCanvas();
     const obj = {
       type: "chat",
       data: {
@@ -278,38 +287,40 @@ export class Canvas {
         username: this.username,
       },
     };
-  
+
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      console.log("hello2");
       this.ws.send(JSON.stringify(obj));
     }
   };
   handleMouseMove = (e: MouseEvent) => {
-    if (!this.move) return;
+   
     if (this.isPanning && this.tool === "Grab") {
-      const dx = e.clientX - this.startX;
-      const dy = e.clientY - this.startY;
+      const dx = e.clientX - this.lastPanX;
+      const dy = e.clientY - this.lastPanY;
       this.offsetX += dx;
       this.offsetY += dy;
-      this.startX = e.clientX;
-      this.startY = e.clientY;
-      this.ctx.setTransform(1, 0, 0, 1, this.offsetX, this.offsetY);
-      this.clearCanvas();
-      this.renderExistingShape();
+      this.lastPanX = e.clientX;
+      this.lastPanY = e.clientY;
+      this.panning();
+
       return;
     }
-    const width = e.clientX - this.startX;
-    const height = e.clientY - this.startY;
+    if(!this.move) return
+    const point = this.getCanvasPoint(e);
+    const width = point.x - this.startX;
+    const height = point.y - this.startY;
 
-    this.clearCanvas(); // always latest shapes
-    this.renderExistingShape();
+    this.renderCanvas();
+    // this.clearCanvas();
+    // this.renderExistingShape()
 
     if (this.tool === "Rect") {
       this.ctx.strokeStyle = "white";
+
       this.ctx.strokeRect(this.startX, this.startY, width, height);
     } else if (this.tool === "Circle") {
-      const X = Math.abs(width / 2 + this.startX);
-      const Y = Math.abs(height / 2 + this.startY);
+      const X = width / 2 + this.startX;
+      const Y = height / 2 + this.startY;
       const radius = Math.abs(Math.max(width / 2, height / 2));
       this.ctx.beginPath();
       this.ctx.arc(X, Y, radius, 0, 2 * Math.PI);
@@ -317,10 +328,10 @@ export class Canvas {
     } else if (this.tool === "Line") {
       this.ctx.beginPath();
       this.ctx.moveTo(this.startX, this.startY);
-      this.ctx.lineTo(e.clientX, e.clientY);
+      this.ctx.lineTo(point.x, point.y);
       this.ctx.stroke();
     } else if (this.tool === "Pencil") {
-      this.pencilPoints.push({ x: e.clientX, y: e.clientY });
+      this.pencilPoints.push(point);
 
       this.ctx.beginPath(); // begin
 
