@@ -163,6 +163,13 @@ export class Canvas {
     // this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.restore();
   }
+  resetView(){
+    this.zoom=1;
+    this.offsetX=0;
+    this.offsetY=0;
+    this.ctx.setTransform(1,0,0,1,0,0)
+    this.renderCanvas()
+  }
   renderExistingShape() {
     this.existingShape?.map((sha) => {
       const parsed = JSON.parse(sha.message) as Shape;

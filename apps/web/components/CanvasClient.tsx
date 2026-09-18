@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSocket } from "../hooks/useSocket";
 import { ToolCollection } from "./ToolCollection";
 import { Canvas } from "../app/service/Canvas";
+import ResetView from "./Resetview";
 
 export default function CanvasClient({
   roomId,
@@ -75,6 +76,7 @@ export default function CanvasClient({
         className="bg-blue-800"
       />
       <ToolCollection  tool={tool} setTool={setTool} />
+      <ResetView resetView={()=>canvasBoardRef.current?.resetView()}/>
     </>
   );
 }

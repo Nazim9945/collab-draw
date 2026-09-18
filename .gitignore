@@ -39,3 +39,6 @@ yarn-error.log*
 
 # prisma generated 
 packages/db/src/generated
+
+# vscode
+.vscode
