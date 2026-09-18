@@ -5,7 +5,6 @@ export function useSocket(roomId: number) {
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [loading, setLoading] = useState(false);
   useEffect(() => {
-    console.log("how many times");
     setLoading(true);
     const wss = new WebSocket(WS_URL);
     let active = true;

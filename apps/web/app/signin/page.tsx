@@ -22,7 +22,6 @@ export default function page() {
     setLoading(true);
 
     try {
-      console.log("1");
       if (isLogin) {
         const res = await apiInstance.post(`/signin`, {
           email,
