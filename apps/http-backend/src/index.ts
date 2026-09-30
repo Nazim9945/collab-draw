@@ -8,6 +8,7 @@ import jwt from 'jsonwebtoken'
 import cookieParser from 'cookie-parser'
 import {prisma} from "@repo/db/prisma"
 import cors from 'cors'
+
 export interface RequestHandler extends Request {
   userId?: string;
 }
@@ -15,9 +16,14 @@ const PORT=3001
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://collabdraw.nazimss.online",
+];
+
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: allowedOrigins,
     credentials: true,
   }),
 );
