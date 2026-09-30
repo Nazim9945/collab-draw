@@ -1,8 +1,8 @@
 import axios from "axios"
+import {BACKEND_URL as B_URL, WS_URL as W_URL} from '@repo/common'
 
-
-const BACKEND_URL="http://localhost:3001"
-const WS_URL = "ws://localhost:3002";
+const BACKEND_URL=B_URL
+const WS_URL = W_URL
 
 
 const apiInstance=axios.create({
