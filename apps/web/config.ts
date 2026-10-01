@@ -1,8 +1,8 @@
 import axios from "axios"
-import {BACKEND_URL as B_URL, WS_URL as W_URL} from '@repo/common'
 
-const BACKEND_URL=B_URL
-const WS_URL = W_URL
+
+const BACKEND_URL=process.env.NEXT_PUBLIC_BACKEND_URL;
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL
 
 
 const apiInstance=axios.create({

@@ -3,7 +3,7 @@
 import { FormEvent, FormEventHandler, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import { apiInstance } from "../../config";
+import { apiInstance} from "../../config";
 
 export default function page() {
   const router = useRouter();
@@ -15,7 +15,6 @@ export default function page() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");

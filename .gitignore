@@ -46,3 +46,5 @@ packages/db/src/generated
 # tsbuildconfig
 *.tsbuildinfo
 
+next-env.d.ts
+

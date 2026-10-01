@@ -17,8 +17,6 @@ export const RoomSchema = z.object({
  roomName:z.string()
 });
 export const SECRET_KEY=process.env.SECRET_KEY || "Hello";
-export const BACKEND_URL=process.env.BACKEND_URL || "http://localhost:3001"
-export const WS_URL = process.env.WS_URL || "ws://localhost:3002";
 
 
 export {UserSignInSchema,UserSignUpSchema}
